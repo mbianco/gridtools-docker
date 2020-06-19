@@ -1,4 +1,4 @@
-FROM ubuntu:18.04
+FROM ubuntu:latest
 LABEL maintainer="Felix Thaler <thaler@cscs.ch>"
 
 SHELL ["/bin/bash", "-lc"]
@@ -35,39 +35,10 @@ RUN cd /tmp && \
     rm -rf *
 
 RUN  apt-get update -qq && \
-     apt-get install -qq -y mpich && \
+     apt-get install -qq -y openmpi-bin libopenmpi-dev && \
      rm -rf /var/lib/apt/lists/*
 
-RUN git clone https://github.com/ecmwf/ecbuild
-
-RUN git clone https://github.com/ecmwf/eckit && \
-    cd eckit && \
-    git checkout master && \
-    mkdir -p build && cd build && \
-    /ecbuild/bin/ecbuild --build=RELEASE --prefix=/opt/eckit -- ../ && \
-    make install
-
-RUN git clone https://github.com/ecmwf/atlas && \
-    pwd && \
-    cd atlas && \
-    git checkout master && \
-    mkdir -p build && cd build && \
-    export ECKIT_PATH=/opt/eckit && \
-    /ecbuild/bin/ecbuild --build=RELEASE --prefix=/opt/atlas -- ../ && \
-    make install
-
-RUN apt-get update -qq && \
-    apt-get install -y libtool automake  autoconf && \
-    rm -rf /var/lib/apt/lists/*
-
-RUN git clone https://github.com/openucx/ucx.git && \
-    cd ucx && \
-    git checkout v1.8.x && \
-    ./autogen.sh && \
-    ./configure --prefix=/usr/local --disable-numa --enable-mt && \
-    make && make install 
-
-ENV LD_LIBRARY_PATH /usr/local/lib:$LD_LIBRARY_PATH
-    
+ENV OMPI_ALLOW_RUN_AS_ROOT=1
+ENV OMPI_ALLOW_RUN_AS_ROOT_CONFIRM=1
 
 CMD ["/bin/bash", "-l"]
